@@ -465,7 +465,7 @@ def main():
     st.set_page_config(layout="wide")
 
     st.sidebar.title("Menu")
-    st.image("aset/Logo.png", width=120)
+    st.image('aset/Logo.png', width=120)
     
     logged_in = login_register()
     if not logged_in:
