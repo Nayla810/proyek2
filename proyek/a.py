@@ -399,42 +399,50 @@ def laporan():
         with col3:
             st.metric("Laba / Rugi", f"Rp {laba_rugi:,.0f}")
 
-    with tabs[5]:
-        aktiva = jurnal_df[jurnal_df['Akun'].isin(['Kas', 'Bank', 'Piutang Dagang'])]['Debit'].sum() - jurnal_df[jurnal_df['Akun'].isin(['Kas', 'Bank', 'Piutang Dagang'])]['Kredit'].sum() if not jurnal_df.empty else 0
-        kewajiban = jurnal_df[jurnal_df['Akun'].isin(['Utang Dagang'])]['Kredit'].sum() - jurnal_df[jurnal_df['Akun'].isin(['Utang Dagang'])]['Debit'].sum() if not jurnal_df.empty else 0
-        ekuitas = laba_rugi
-        
-        col1, col2, col3 = st.columns(3)
+       with tabs[5]:
+        st.subheader("Neraca")
+        aset = jurnal_df[jurnal_df['Akun'].isin(['Kas', 'Bank', 'Piutang Dagang'])].copy()
+        kewajiban = jurnal_df[jurnal_df['Akun'] == 'Utang Dagang'].copy()
+        modal = jurnal_df[jurnal_df['Akun'] == 'Pendapatan'].copy()
+
+        total_aset = aset['Debit'].sum() - aset['Kredit'].sum()
+        total_kewajiban = kewajiban['Kredit'].sum() - kewajiban['Debit'].sum()
+        total_modal = modal['Kredit'].sum() - modal['Debit'].sum()
+
+        col1, col2 = st.columns(2)
         with col1:
-            st.metric("Aktiva", f"Rp {aktiva:,.0f}")
+            st.write("### Aset")
+            st.write(f"Total Aset: Rp {total_aset:,.0f}")
         with col2:
-            st.metric("Kewajiban", f"Rp {kewajiban:,.0f}")
-        with col3:
-            st.metric("Ekuitas", f"Rp {ekuitas:,.0f}")
-    
+            st.write("### Kewajiban dan Modal")
+            st.write(f"Kewajiban: Rp {total_kewajiban:,.0f}")
+            st.write(f"Modal: Rp {total_modal:,.0f}")
+            st.write(f"Total: Rp {(total_kewajiban + total_modal):,.0f}")
+
     with tabs[6]:
         st.subheader("Kelola Transaksi")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("### Pemasukan")
-            if not pemasukan_df.empty:
-                pemasukan_df['No'] = pemasukan_df.index + 1
-                st.dataframe(pemasukan_df[['No', 'Tanggal', 'Sumber', 'Jumlah', 'Keterangan']])
-                
-                selected_pemasukan = st.selectbox(
-                    "Pilih Pemasukan untuk Dihapus",
-                    options=pemasukan_df.index,
-                    format_func=lambda x: f"{pemasukan_df.loc[x, 'Tanggal']} - {pemasukan_df.loc[x, 'Sumber']} - Rp {pemasukan_df.loc[x, 'Jumlah']:,}"
-                )
-                
-                if st.button("Hapus Pemasukan Terpilih"):
-                    if hapus_transaksi("pemasukan", selected_pemasukan, username):
-                        st.success("Pemasukan berhasil dihapus dan jurnal pembalikan telah dibuat.")
-                        st.rerun()
-                    else:
-                        st.error("Gagal menghapus pemasukan.")
+        tipe = st.radio("Jenis Transaksi", ["Pemasukan", "Pengeluaran"], horizontal=True)
+        if tipe == "Pemasukan":
+            df = pemasukan_df.copy()
+        else:
+            df = pengeluaran_df.copy()
+
+        if df.empty:
+            st.info("Tidak ada transaksi yang bisa ditampilkan.")
+        else:
+            df_display = df.copy()
+            df_display['Index'] = df_display.index
+            st.dataframe(df_display)
+
+            index_to_delete = st.number_input("Masukkan Index Transaksi yang Ingin Dihapus", min_value=0, max_value=int(df.index.max()))
+            if st.button("🗑️ Hapus Transaksi Ini"):
+                berhasil = hapus_transaksi(tipe.lower(), index_to_delete, username)
+                if berhasil:
+                    st.success("Transaksi berhasil dihapus dan jurnal pembalik telah ditambahkan.")
+                    st.rerun()
+                else:
+                    st.error("Index tidak ditemukan atau gagal menghapus.")
+
             else:
                 st.info("Tidak ada data pemasukan.")
         
