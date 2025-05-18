@@ -464,7 +464,7 @@ def laporan():
 def main():
     st.set_page_config(layout="wide")
     st.sidebar.title("Menu")
-    st.image("proyek/aset/Logo.png", width=120)
+    st.image("proyek/aset/Logo.png", width=5000)
     
     
     
