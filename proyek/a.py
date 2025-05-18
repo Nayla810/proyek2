@@ -463,9 +463,8 @@ def laporan():
 
 def main():
     st.set_page_config(layout="wide")
-
     st.sidebar.title("Menu")
-    st.image('aset/Logo.png',width=250)
+    
     
     
     logged_in = login_register()
